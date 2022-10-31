@@ -211,7 +211,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     //windowsAPIの初期化
     winApp = new WinApp();
     winApp->Initialize();
-    MSG msg{};  // メッセージ
+    //MSG msg{};  // メッセージ
 #pragma endregion
 
 #pragma region DirectX初期化処理
@@ -434,7 +434,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #pragma endregion
     //入力の初期化
     input = new Input();
-    input->Initialize(winApp->GetHInstance(), winApp->GetHwnd());
+    input->Initialize(winApp);
 
 #pragma region 描画初期化処理
 
@@ -909,14 +909,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     // ゲームループ
     while (true) {
-        // メッセージがある？
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg); // キー入力メッセージの処理
-            DispatchMessage(&msg); // プロシージャにメッセージを送る
-        }
-
-        // ✖ボタンで終了メッセージが来たらゲームループを抜ける
-        if (msg.message == WM_QUIT) {
+        
+        //windowsのメッセージ処理
+        if (winApp->ProcessMessage()){
+            //ゲームループを抜ける
             break;
         }
 
@@ -1073,9 +1069,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     }
     delete input;
+    input = nullptr;
+    
+    //WindowsAPIの終了処理
+    winApp->Finalize();
+
     delete winApp;
-    // ウィンドウクラスを登録解除
-    UnregisterClass(w.lpszClassName, w.hInstance);
+    winApp = nullptr;
 
     return 0;
 }

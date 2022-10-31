@@ -1,4 +1,5 @@
 #pragma once
+#include "WinApp.h"
 #include <wrl.h>
 
 #define DIRECTINPUT_VERSION     0x0800   // DirectInputのバージョン指定
@@ -11,7 +12,7 @@ public:
 
 public:
 	//初期化
-	void Initialize(HINSTANCE hInstance, HWND hwnd);
+	void Initialize(WinApp* winApp);
 	//更新
 	void Update();
 	/// <summary>
@@ -22,7 +23,11 @@ public:
 	/// キーの押下をチェック
 	/// </summary>
 	bool TriggerKey(BYTE keyNumber);
+
 private:
+	//windowsAPI
+	WinApp* winApp_ = nullptr;
+
 	//キーボードのデバイス
 	ComPtr<IDirectInputDevice8> keyboard;
 	//DirectInputのインスタンス
@@ -30,5 +35,6 @@ private:
 
 	BYTE key[256] = {};
 	BYTE keyPre[256] = {};
+
 };
 
