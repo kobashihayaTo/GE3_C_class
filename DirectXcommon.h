@@ -22,6 +22,11 @@ public://メンバ関数
 	/// </summary>
 	void PostDraw();
 
+	//デバイス取得
+	ID3D12Device* GetDevice() const { return device.Get(); }
+
+	//コマンドリスト取得
+	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
 private:
 	/// <summary>
 	/// デバイス初期化
@@ -51,6 +56,7 @@ private:
 	/// フェンスの初期化
 	/// </summary>
 	void InitializeFence();
+
 
 private:
 	WinApp* winApp = nullptr;
