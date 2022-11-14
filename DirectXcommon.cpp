@@ -374,7 +374,7 @@ void DirectXcommon::UpdateFixFPS()
         std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
 
     //1/60秒経っていいない場合
-    if (elapsed < kMinTime) {
+    if (elapsed < kMinCheckTime) {
         while (std::chrono::steady_clock::now() - reference_ < kMinTime) {
             //1マイクロ秒スリーブ
             std::this_thread::sleep_for(std::chrono::microseconds(1));
