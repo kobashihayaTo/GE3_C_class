@@ -40,10 +40,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\shaders\BasicPS.hlsl">
+    <FxCompile Include="Resources\shaders\SpritePS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\shaders\BasicVS.hlsl">
+    <FxCompile Include="Resources\shaders\SpriteVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
   </ItemGroup>
