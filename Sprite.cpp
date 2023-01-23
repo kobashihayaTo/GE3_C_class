@@ -9,26 +9,25 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 	assert(spriteCommon_);
 	spriteCommon = spriteCommon_;
 
-	// 頂点データ構造体
-	struct Vertex
-	{
-		XMFLOAT3 pos; // xyz座標
-		XMFLOAT2 uv;  // uv座標
-	};
-	// 頂点データ
-	Vertex vertices[] = {
-		// x        y     z       u     v
-		{{   0.0f, 100.0f, 0.0f}, {0.0f, 1.0f}}, // 左下
-		{{   0.0f,   0.0f, 0.0f}, {0.0f, 0.0f}}, // 左上
-		{{ 100.0f, 100.0f, 0.0f}, {1.0f, 1.0f}}, // 右下
-		{{ 100.0f,   0.0f, 0.0f}, {1.0f, 0.0f}}, // 右上
-	};
+	float left = (0.0f - anchorPoint.x) * size.x;
+	float right = (1.0f - anchorPoint.x) * size.x;
+	float top = (0.0f - anchorPoint.y) * size.y;
+	float bottom = (1.0f - anchorPoint.y) * size.y;
 
-	// インデックスデータ
-	unsigned short indices[] = {
-		0, 1, 2, // 三角形1つ目
-		1, 2, 3, // 三角形2つ目
-	};
+	if (IsFlipX) {
+		left = -left;
+		right = -right;
+	}
+	if (IsFlipY) {
+		top = -top;
+		bottom = -bottom;
+	}
+
+	// 頂点データ
+	vertices[LB] = { {   left, bottom, 0.0f}, {0.0f, 1.0f} }; // 左下
+	vertices[LT] = { {   left,  top, 0.0f}, {0.0f, 0.0f} }; // 左上
+	vertices[RB] = { { right, bottom, 0.0f}, {1.0f, 1.0f} };// 右下
+	vertices[RT] = { { right,   top, 0.0f}, {1.0f, 0.0f} }; // 右上
 
 	// 頂点データ全体のサイズ = 頂点データ一つ分のサイズ * 頂点データの要素数
 	UINT sizeVB = static_cast<UINT>(sizeof(vertices[0]) * _countof(vertices));
@@ -58,7 +57,6 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 	assert(SUCCEEDED(result));
 
 	// GPU上のバッファに対応した仮想メモリ(メインメモリ上)を取得
-	Vertex* vertMap = nullptr;
 	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
 	assert(SUCCEEDED(result));
 	// 全頂点に対して
@@ -105,7 +103,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 		result = constBufferMaterial->Map(0, nullptr, (void**)&constMapMaterial); // マッピング
 		assert(SUCCEEDED(result));
 
-		constMapMaterial->color = color;
+		constMapMaterial->color = color_;
 	}
 
 	//行列
@@ -137,8 +135,6 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 		result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform); // マッピング
 		assert(SUCCEEDED(result));
 
-		rotationZ = 0.f;
-		position = { 0.f,0.f,0.f };
 
 		//ワールド
 		XMMATRIX matWorld;
@@ -152,7 +148,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 
 		//平行
 		XMMATRIX matTrans;
-		matTrans = XMMatrixTranslation(position.x, position.y,position.z);
+		matTrans = XMMatrixTranslation(position.x, position.y,0.0f);
 		matWorld *= matTrans;
 
 		//射影行列
@@ -168,9 +164,39 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 
 void Sprite::Update()
 {
+	float left = (0.0f - anchorPoint.x) * size.x;
+	float right = (1.0f - anchorPoint.x) * size.x;
+	float top = (0.0f - anchorPoint.y) * size.y;
+	float bottom = (1.0f - anchorPoint.y) * size.y;
+
+	if (IsFlipX) {
+		left = -left;
+		right = -right;
+	}
+	if (IsFlipY) {
+		top = -top;
+		bottom = -bottom;
+	}
 
 
-	constMapMaterial->color = color;
+	// 頂点データ
+	vertices[LB] = { { left, bottom, 0.0f}, {0.0f, 1.0f} }; // 左下
+	vertices[LT] = { { left,  top, 0.0f}, {0.0f, 0.0f} }; // 左上
+	vertices[RB] = { { right, bottom, 0.0f}, {1.0f, 1.0f} };// 右下
+	vertices[RT] = { { right,   top, 0.0f}, {1.0f, 0.0f} }; // 右上
+	// GPU上のバッファに対応した仮想メモリ(メインメモリ上)を取得
+	Vertex* vertMap = nullptr;
+	HRESULT result = vertBuff->Map(0, nullptr, (void**)&vertMap);
+	assert(SUCCEEDED(result));
+	// 全頂点に対して
+	for (int i = 0; i < _countof(vertices); i++)
+	{
+		vertMap[i] = vertices[i]; // 座標をコピー
+	}
+	// 繋がりを解除
+	vertBuff->Unmap(0, nullptr);
+
+	constMapMaterial->color = color_;
 
 	//ワールド
 	XMMATRIX matWorld;
@@ -184,7 +210,7 @@ void Sprite::Update()
 
 	//平行
 	XMMATRIX matTrans;
-	matTrans = XMMatrixTranslation(position.x, position.y, position.z);
+	matTrans = XMMatrixTranslation(position.x, position.y, 0.0f);
 	matWorld *= matTrans;
 
 	//射影行列
@@ -199,6 +225,10 @@ void Sprite::Update()
 
 void Sprite::Draw()
 {
+	if (IsInvisible) {
+		return ;
+	}
+
 	//頂点バッファビューの設定コマンド
 	spriteCommon->GetDirectXCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vbView);
 
