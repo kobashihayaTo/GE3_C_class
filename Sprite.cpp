@@ -229,6 +229,9 @@ void Sprite::Draw()
 		return ;
 	}
 
+	//テクスチャコマンド
+	spriteCommon->SetTextureCommands(textureIndex);
+
 	//頂点バッファビューの設定コマンド
 	spriteCommon->GetDirectXCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vbView);
 

@@ -44,6 +44,8 @@ public:
 	//ゲッター
 	const DirectX::XMFLOAT4& GetColor()const { return color_; }
 
+	const uint32_t GetTextureIndex()const { return textureIndex; }
+
 	const DirectX::XMFLOAT2& GetPosition()const { return position; }
 	const float& GetRotationZ()const { return rotationZ; }
 	const DirectX::XMFLOAT2& GetSize()const { return size; }
@@ -56,6 +58,8 @@ public:
 	//セッター
 	void SetColor(DirectX::XMFLOAT4 color) { color_ = color; }
 
+	void SetTextureIndex(uint32_t index) { this->textureIndex = index; }
+
 	void SetPosition(const DirectX::XMFLOAT2& position) { this->position = position; }
 	void SetRotation(const float rotationZ) { this->rotationZ = rotationZ; }
 	void SetSize(const DirectX::XMFLOAT2& size) { this->size = size; }
@@ -64,9 +68,15 @@ public:
 	void SetIsFlipX(const bool& isFlipX) { this->IsFlipX = isFlipX; }
 	void SetIsFlipY(const bool& isFlipY) { this->IsFlipY = isFlipY; }
 	void SetIsInvisible(const bool& IsInvisible) { this->IsInvisible = IsInvisible; }
+
+
 private:
 	//スプライト
 	SpriteCommon* spriteCommon = nullptr;
+
+	//テクスチャ番号
+	uint32_t textureIndex = 0;
+
 
 	DirectX::XMFLOAT4 color_ = { 1,1,1,1.f };
 	

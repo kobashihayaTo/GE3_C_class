@@ -29,6 +29,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     SpriteCommon* spriteCommon = nullptr;
     spriteCommon = new SpriteCommon;
     spriteCommon->Initialize(dxCommon);
+    spriteCommon->LoadTexture(0, "texture.png");
+    spriteCommon->LoadTexture(1, "reimu.png");
 
 #pragma endregion 
 
@@ -36,8 +38,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #pragma region 最初のシーンの初期化
     Sprite* sprite = nullptr;
     sprite = new Sprite;
+    sprite->SetTextureIndex(0);
     sprite->Initialize(spriteCommon);
-    sprite->SetColor({ 0,1,1,1 });
+    
 
 #pragma endregion 
     // ゲームループ
