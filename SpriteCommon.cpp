@@ -2,6 +2,7 @@
 
 #include <d3dcompiler.h>
 #include <cassert>
+#include <DirectXTex.h>
 
 #pragma comment(lib,"d3dcompiler.lib")
 
@@ -14,50 +15,68 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
 	assert(dxCommon_);
 	dxCommon = dxCommon_;
 
-    imageData=new XMFLOAT4[imageDataCount];
-    for (size_t  i = 0; i < imageDataCount; i++)
-    {
-        imageData[i].x = 1.0f;
-        imageData[i].y = 0.0f;
-        imageData[i].z = 0.0f;
-        imageData[i].w = 1.0f;
+    TexMetadata metadata{};
+    ScratchImage scratchImg{};
+    //WICテクスチャのロード
+    result = LoadFromWICFile(
+        L"Resources/reimu.png",   //「Resources」フォルダの「texture.png」
+        WIC_FLAGS_NONE,
+        &metadata, scratchImg
+    );
+    assert(SUCCEEDED(result));
+
+    ScratchImage mipChain{};
+    //ミップマップ生成
+    result = GenerateMipMaps(
+        scratchImg.GetImages(), scratchImg.GetImageCount(), scratchImg.GetMetadata(),
+        TEX_FILTER_DEFAULT, 0, mipChain);
+    if (SUCCEEDED(result)) {
+        scratchImg = std::move(mipChain);
+        metadata = scratchImg.GetMetadata();
     }
+    // 読み込んだディフューズテクスチャをSRGBとして扱う
+    metadata.format = MakeSRGB(metadata.format);
+
     //テクスチャ
-    {
-        D3D12_HEAP_PROPERTIES cbHeapProp{};
-        cbHeapProp.Type = D3D12_HEAP_TYPE_CUSTOM;
-        cbHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-        cbHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
 
-        D3D12_RESOURCE_DESC textureResourceDesc{};
-        textureResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        textureResourceDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        textureResourceDesc.Width = textureWidth;
-        textureResourceDesc.Height= textureHeight;
-        textureResourceDesc.DepthOrArraySize = 1;
-        textureResourceDesc.MipLevels = 1;
-        textureResourceDesc.SampleDesc.Count = 1;
+      D3D12_HEAP_PROPERTIES cbHeapProp{};
+      cbHeapProp.Type = D3D12_HEAP_TYPE_CUSTOM;
+      cbHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+      cbHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
 
-        // 定数バッファの生成
-        result = dxCommon->GetDevice()->CreateCommittedResource(
-            &cbHeapProp, // ヒープ設定
-            D3D12_HEAP_FLAG_NONE,
-            &textureResourceDesc, // リソース設定
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&texBuff)
-        );
+      D3D12_RESOURCE_DESC textureResourceDesc{};
+      textureResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      textureResourceDesc.Format = metadata.format;
+      textureResourceDesc.Width = metadata.width;
+      textureResourceDesc.Height= (UINT)metadata.height;
+      textureResourceDesc.DepthOrArraySize = (UINT16)metadata.arraySize;
+      textureResourceDesc.MipLevels = (UINT16)metadata.mipLevels;
+      textureResourceDesc.SampleDesc.Count = 1;
 
-        result = texBuff->WriteToSubresource(
-            0,
-            nullptr,//全領域へコピー
-            imageData,//元データアドレス
-            sizeof(XMFLOAT4) * textureWidth,//1ラインサイズ
-            sizeof(XMFLOAT4) * imageDataCount//全サイズ
-        );
+      // 定数バッファの生成
+      result = dxCommon->GetDevice()->CreateCommittedResource(
+          &cbHeapProp, // ヒープ設定
+          D3D12_HEAP_FLAG_NONE,
+          &textureResourceDesc, // リソース設定
+          D3D12_RESOURCE_STATE_GENERIC_READ,
+          nullptr,
+          IID_PPV_ARGS(&texBuff)
+      );
 
-        delete[] imageData;
-    }
+      for (size_t i = 0; i < metadata.mipLevels; i++)
+      {
+          //ミップマップレベルを指定してイメージを取得
+          const Image* img = scratchImg.GetImage(i, 0, 0);
+          //テクスチャバッファにデータ転送
+          result = texBuff->WriteToSubresource(
+              (UINT)i,
+              nullptr,//全領域へコピー
+              img->pixels,//元データアドレス
+              (UINT)img->rowPitch,//1ラインサイズ
+              (UINT)img->slicePitch//全サイズ
+          );
+          assert(SUCCEEDED(result));
+      }
 
     //SRVの最大個数
     const size_t kMaxSRVCount = 2056;
@@ -75,10 +94,10 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-    srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    srvDesc.Format = textureResourceDesc.Format;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
+    srvDesc.Texture2D.MipLevels = textureResourceDesc.MipLevels;
 
     //ハンドルの指す位置にシェーダーリソースビュー作成
     dxCommon->GetDevice()->CreateShaderResourceView(texBuff.Get(), &srvDesc, srvHandle);
@@ -172,6 +191,26 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     pipelineDesc.InputLayout.NumElements = _countof(inputLayout);
     // 図形の形状設定
     pipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    // レンダーターゲット
+    D3D12_RENDER_TARGET_BLEND_DESC& blenddesc = pipelineDesc.BlendState.RenderTarget[0];
+    blenddesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;  // RBGA全てのチャンネルを描画
+
+    blenddesc.BlendEnable = true;
+    blenddesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    blenddesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+    blenddesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+
+    blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
+    blenddesc.SrcBlend = D3D12_BLEND_ONE;
+    blenddesc.DestBlend = D3D12_BLEND_ONE;
+
+    //blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
+    //blenddesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+    //blenddesc.DestBlend = D3D12_BLEND_ZERO;
+
+    //blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
+    //blenddesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    //blenddesc.DestBlend  = D3D12_BLEND_INV_SRC_ALPHA;
     // その他の設定
     pipelineDesc.NumRenderTargets = 1; // 描画対象は1つ
     pipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 0～255指定のRGBA
@@ -227,7 +266,6 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     // パイプラインにルートシグネチャをセット
     pipelineDesc.pRootSignature = rootSignature.Get();
     // パイプランステートの生成
-
     result = dxCommon->GetDevice()->CreateGraphicsPipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState));
     assert(SUCCEEDED(result));
 

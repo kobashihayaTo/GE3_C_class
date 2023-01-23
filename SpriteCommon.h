@@ -8,10 +8,6 @@
 
 class SpriteCommon
 {
-public:
-	const size_t textureWidth = 256;
-	const size_t textureHeight = 256;
-	const size_t imageDataCount = textureWidth * textureHeight;
 
 public://メンバ関数
 	//初期化
@@ -30,9 +26,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12PipelineState>pipelineState;
 	//ループシグネチャ
 	Microsoft::WRL::ComPtr<ID3D12RootSignature>rootSignature;
-
-	//画像
-	DirectX::XMFLOAT4* imageData ;
 	//テクスチャバッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource> texBuff;
 	//デスクリプタヒープ
