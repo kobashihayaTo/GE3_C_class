@@ -53,6 +53,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         //入力の更新
         input->Update();
 
+        sprite->Update();
+
         //描画前処理
         dxCommon->PreDraw();
         

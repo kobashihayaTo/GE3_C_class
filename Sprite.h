@@ -4,8 +4,6 @@
 class Sprite
 {
 private:
-	const int window_width = 1280;
-	const int window_height = 720;
 
 	//頂点データ構造体
 	struct Vertex
@@ -29,6 +27,8 @@ public:
 	//初期化
 	void Initialize(SpriteCommon* spriteCommon_);
 	//更新
+	void Update();
+	//描画
 	void Draw();
 
 private:
@@ -36,6 +36,9 @@ private:
 	SpriteCommon* spriteCommon = nullptr;
 
 	DirectX::XMFLOAT4 color = { 1,1,1,1.f };
+	
+	float rotationZ;
+	DirectX::XMFLOAT3 position;
 
 	//頂点バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource>vertBuff;
