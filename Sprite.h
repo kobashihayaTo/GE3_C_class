@@ -3,7 +3,10 @@
 
 class Sprite
 {
-public:
+private:
+	const int window_width = 1280;
+	const int window_height = 720;
+
 	//頂点データ構造体
 	struct Vertex
 	{
@@ -32,12 +35,17 @@ private:
 	//スプライト
 	SpriteCommon* spriteCommon = nullptr;
 
-	DirectX::XMFLOAT4 color = { 1,0,0,0.5f };
-
+	DirectX::XMFLOAT4 color = { 1,1,1,1.f };
 
 	//頂点バッファ
 	Microsoft::WRL::ComPtr<ID3D12Resource>vertBuff;
 	//頂点バッファビュー
 	D3D12_VERTEX_BUFFER_VIEW vbView{};
+
+	Microsoft::WRL::ComPtr<ID3D12Resource>constBufferMaterial;
+	ConstBufferDataMaterial* constMapMaterial = nullptr;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource>constBuffTransform;
+	ConstBufferDataTransform* constMapTransform = nullptr;
 };
 

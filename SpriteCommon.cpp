@@ -204,13 +204,13 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     blenddesc.SrcBlend = D3D12_BLEND_ONE;
     blenddesc.DestBlend = D3D12_BLEND_ONE;
 
-    //blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
-    //blenddesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
-    //blenddesc.DestBlend = D3D12_BLEND_ZERO;
+    blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
+    blenddesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
+    blenddesc.DestBlend = D3D12_BLEND_ZERO;
 
-    //blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
-    //blenddesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    //blenddesc.DestBlend  = D3D12_BLEND_INV_SRC_ALPHA;
+    blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
+    blenddesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    blenddesc.DestBlend  = D3D12_BLEND_INV_SRC_ALPHA;
     // その他の設定
     pipelineDesc.NumRenderTargets = 1; // 描画対象は1つ
     pipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 0～255指定のRGBA
@@ -224,7 +224,7 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
     //ルートパラメーター
-    D3D12_ROOT_PARAMETER rootParams[2] = {};
+    D3D12_ROOT_PARAMETER rootParams[3] = {};
     rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
     rootParams[0].Descriptor.ShaderRegister = 0;
     rootParams[0].Descriptor.RegisterSpace = 0;
@@ -234,6 +234,11 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
     rootParams[1].DescriptorTable.pDescriptorRanges = &descriptorRange;
     rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
     rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    //定数バッファ
+    rootParams[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+    rootParams[2].Descriptor.ShaderRegister = 1;
+    rootParams[2].Descriptor.RegisterSpace = 0;
+    rootParams[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
     // テクスチャサンプラーの設定
     D3D12_STATIC_SAMPLER_DESC samplerDesc{};
