@@ -306,5 +306,5 @@ void Sprite::AdjustTextureSize()
 	D3D12_RESOURCE_DESC resDesc = textureBuffer->GetDesc();
 
 	textureSize_.x = static_cast<float>(resDesc.Width);
-	textureSize_.y = static_cast<float>(resDesc.Width);
+	textureSize_.y = static_cast<float>(resDesc.Height);
 }
