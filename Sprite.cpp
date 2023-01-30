@@ -3,32 +3,63 @@
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
-void Sprite::Initialize(SpriteCommon* spriteCommon_)
+void Sprite::Initialize(SpriteCommon* spriteCommon_, uint32_t textureIndex)
 {
 	HRESULT result;
 	assert(spriteCommon_);
 	spriteCommon = spriteCommon_;
 
-	float left = (0.0f - anchorPoint.x) * size.x;
-	float right = (1.0f - anchorPoint.x) * size.x;
-	float top = (0.0f - anchorPoint.y) * size.y;
-	float bottom = (1.0f - anchorPoint.y) * size.y;
-
-	if (IsFlipX) {
-		left = -left;
-		right = -right;
-	}
-	if (IsFlipY) {
-		top = -top;
-		bottom = -bottom;
+	if (textureIndex != UINT32_MAX) {
+		this->textureIndex = textureIndex;
+		AdjustTextureSize();
+		size = textureSize_;
 	}
 
-	// 頂点データ
-	vertices[LB] = { {   left, bottom, 0.0f}, {0.0f, 1.0f} }; // 左下
-	vertices[LT] = { {   left,  top, 0.0f}, {0.0f, 0.0f} }; // 左上
-	vertices[RB] = { { right, bottom, 0.0f}, {1.0f, 1.0f} };// 右下
-	vertices[RT] = { { right,   top, 0.0f}, {1.0f, 0.0f} }; // 右上
+	//UV
+	{
+		ID3D12Resource* textureBuffer = spriteCommon->GetTextureBuffer(textureIndex);
 
+		if (textureBuffer)
+		{
+			D3D12_RESOURCE_DESC resDesc = textureBuffer->GetDesc();
+
+			float tex_left = textureLeftTop_.x / resDesc.Width;
+			float tex_right = (textureLeftTop_.x+textureSize_.x) / resDesc.Width;
+			float tex_top = textureLeftTop_.y / resDesc.Height;
+			float tex_bottom = (textureLeftTop_.y + textureSize_.y) / resDesc.Height;
+
+		vertices[LB].uv = { tex_left, tex_bottom }; // 左下
+		vertices[LT].uv = { tex_left, tex_top }; // 左上
+		vertices[RB].uv = { tex_right, tex_bottom };// 右下
+		vertices[RT].uv = { tex_right, tex_top }; // 右上
+		}
+
+	}
+
+	//座標
+	{
+		float left = (0.0f - anchorPoint.x) * size.x;
+		float right = (1.0f - anchorPoint.x) * size.x;
+		float top = (0.0f - anchorPoint.y) * size.y;
+		float bottom = (1.0f - anchorPoint.y) * size.y;
+
+		if (IsFlipX) {
+			left = -left;
+			right = -right;
+		}
+		if (IsFlipY) {
+			top = -top;
+			bottom = -bottom;
+		}
+
+		// 頂点データ
+		vertices[LB].pos = {  left, bottom, 0.0f}; // 左下
+		vertices[LT].pos = {  left,  top, 0.0f}; // 左上
+		vertices[RB].pos = {  right, bottom, 0.0f};// 右下
+		vertices[RT].pos = {  right,   top, 0.0f}; // 右上
+
+	}
+	
 	// 頂点データ全体のサイズ = 頂点データ一つ分のサイズ * 頂点データの要素数
 	UINT sizeVB = static_cast<UINT>(sizeof(vertices[0]) * _countof(vertices));
 
@@ -164,26 +195,51 @@ void Sprite::Initialize(SpriteCommon* spriteCommon_)
 
 void Sprite::Update()
 {
-	float left = (0.0f - anchorPoint.x) * size.x;
-	float right = (1.0f - anchorPoint.x) * size.x;
-	float top = (0.0f - anchorPoint.y) * size.y;
-	float bottom = (1.0f - anchorPoint.y) * size.y;
+	//UV
+	{
+		ID3D12Resource* textureBuffer = spriteCommon->GetTextureBuffer(textureIndex);
 
-	if (IsFlipX) {
-		left = -left;
-		right = -right;
+		if (textureBuffer)
+		{
+			D3D12_RESOURCE_DESC resDesc = textureBuffer->GetDesc();
+
+			float tex_left = textureLeftTop_.x / resDesc.Width;
+			float tex_right = (textureLeftTop_.x + textureSize_.x) / resDesc.Width;
+			float tex_top = textureLeftTop_.y / resDesc.Height;
+			float tex_bottom = (textureLeftTop_.y + textureSize_.y) / resDesc.Height;
+
+			vertices[LB].uv = { tex_left, tex_bottom }; // 左下
+			vertices[LT].uv = { tex_left, tex_top }; // 左上
+			vertices[RB].uv = { tex_right, tex_bottom };// 右下
+			vertices[RT].uv = { tex_right, tex_top }; // 右上
+		}
+
 	}
-	if (IsFlipY) {
-		top = -top;
-		bottom = -bottom;
+
+	//座標
+	{
+		float left = (0.0f - anchorPoint.x) * size.x;
+		float right = (1.0f - anchorPoint.x) * size.x;
+		float top = (0.0f - anchorPoint.y) * size.y;
+		float bottom = (1.0f - anchorPoint.y) * size.y;
+
+		if (IsFlipX) {
+			left = -left;
+			right = -right;
+		}
+		if (IsFlipY) {
+			top = -top;
+			bottom = -bottom;
+		}
+
+		// 頂点データ
+		vertices[LB].pos = { left, bottom, 0.0f }; // 左下
+		vertices[LT].pos = { left,  top, 0.0f }; // 左上
+		vertices[RB].pos = { right, bottom, 0.0f };// 右下
+		vertices[RT].pos = { right,   top, 0.0f }; // 右上
+
 	}
 
-
-	// 頂点データ
-	vertices[LB] = { { left, bottom, 0.0f}, {0.0f, 1.0f} }; // 左下
-	vertices[LT] = { { left,  top, 0.0f}, {0.0f, 0.0f} }; // 左上
-	vertices[RB] = { { right, bottom, 0.0f}, {1.0f, 1.0f} };// 右下
-	vertices[RT] = { { right,   top, 0.0f}, {1.0f, 0.0f} }; // 右上
 	// GPU上のバッファに対応した仮想メモリ(メインメモリ上)を取得
 	Vertex* vertMap = nullptr;
 	HRESULT result = vertBuff->Map(0, nullptr, (void**)&vertMap);
@@ -240,4 +296,15 @@ void Sprite::Draw()
 	spriteCommon->GetDirectXCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(2, constBuffTransform->GetGPUVirtualAddress());
 	//描画コマンド
 	spriteCommon->GetDirectXCommon()->GetCommandList()->DrawInstanced(4, 1, 0, 0);
+}
+
+void Sprite::AdjustTextureSize()
+{
+	ID3D12Resource* textureBuffer = spriteCommon->GetTextureBuffer(textureIndex);
+	assert(textureBuffer);
+
+	D3D12_RESOURCE_DESC resDesc = textureBuffer->GetDesc();
+
+	textureSize_.x = static_cast<float>(resDesc.Width);
+	textureSize_.y = static_cast<float>(resDesc.Width);
 }

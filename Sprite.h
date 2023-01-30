@@ -35,7 +35,7 @@ public:
 
 public:
 	//初期化
-	void Initialize(SpriteCommon* spriteCommon_);
+	void Initialize(SpriteCommon* spriteCommon_,uint32_t textureIndex=UINT32_MAX);
 	//更新
 	void Update();
 	//描画
@@ -50,7 +50,10 @@ public:
 	const float& GetRotationZ()const { return rotationZ; }
 	const DirectX::XMFLOAT2& GetSize()const { return size; }
 	const DirectX::XMFLOAT2& GetAnchorPoint()const { return anchorPoint; }
-	
+
+	const DirectX::XMFLOAT2& GetTextureLeftTop() const { return textureLeftTop_; }
+	const DirectX::XMFLOAT2 GettextureSize() const { return textureSize_; }
+
 	const bool& GetIsFlipX() const { return IsFlipX; }
 	const bool& GetIsFlipY() const { return IsFlipY; }
 	const bool& GetIsInvisible() const { return IsInvisible; }
@@ -65,9 +68,16 @@ public:
 	void SetSize(const DirectX::XMFLOAT2& size) { this->size = size; }
 	void SetAnchorPoint(const DirectX::XMFLOAT2& anchorPoint) { this->anchorPoint =anchorPoint; }
 
+	void SetTextureLeftTop(const DirectX::XMFLOAT2 leftTop) { this->textureLeftTop_ = leftTop; }
+	void SetTextureSize(const DirectX::XMFLOAT2 size) { this->textureSize_ = size; }
+
 	void SetIsFlipX(const bool& isFlipX) { this->IsFlipX = isFlipX; }
 	void SetIsFlipY(const bool& isFlipY) { this->IsFlipY = isFlipY; }
 	void SetIsInvisible(const bool& IsInvisible) { this->IsInvisible = IsInvisible; }
+
+private:
+	//テクスチャサイズをイメージに合わせる
+	void AdjustTextureSize();
 
 
 private:
@@ -86,6 +96,11 @@ private:
 	DirectX::XMFLOAT2 size = { 100.f,100.f };
 	//アンカーポイント
 	DirectX::XMFLOAT2 anchorPoint = { 0.0f,0.0f };
+
+	//テクスチャ左上座標
+	DirectX::XMFLOAT2 textureLeftTop_{ 0.0f,0.0f };
+	//テクスチャ切り出しサイズ
+	DirectX::XMFLOAT2 textureSize_ = { 100.0f,95.0f };
 
 	bool IsFlipX = false;
 	bool IsFlipY = false;

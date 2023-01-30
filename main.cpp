@@ -38,8 +38,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #pragma region 最初のシーンの初期化
     Sprite* sprite = nullptr;
     sprite = new Sprite;
-    sprite->SetTextureIndex(1);
-    sprite->Initialize(spriteCommon);
+    sprite->Initialize(spriteCommon,1);
     
 
 #pragma endregion 

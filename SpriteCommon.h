@@ -13,10 +13,6 @@ class SpriteCommon
 public://メンバ関数
 	//初期化
 	void Initialize(DirectXcommon*dxCommon_);
-
-	//描画
-	void PreDraw(); 
-
 	/// <summary>
 	/// テクスチャ読み込み
 	/// </summary>
@@ -31,6 +27,7 @@ public://メンバ関数
 
 	//Getter
 	DirectXcommon* GetDirectXCommon() { return dxCommon; }
+	ID3D12Resource* GetTextureBuffer(uint32_t index) { return texBuff[index].Get(); }
 
 	/// <summary>
 	/// 描画前処置
