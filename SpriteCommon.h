@@ -32,13 +32,22 @@ public://メンバ関数
 	//Getter
 	DirectXcommon* GetDirectXCommon() { return dxCommon; }
 
+	/// <summary>
+	/// 描画前処置
+	/// </summary>
+	void PreDraw();
 
+	/// <summary>
+	/// 描画後処理
+	/// </summary>
+	void PostDraw();
 
 private:	//静的メンバ関数
 	//SRVの最大個数
 	static const size_t kMaxSRVCount = 2056;
 
 	static std::string kDefaultTextureDirectoryPath;
+
 private:
 	DirectXcommon* dxCommon;
 

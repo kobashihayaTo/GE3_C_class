@@ -90,7 +90,7 @@ private:
 	bool IsFlipX = false;
 	bool IsFlipY = false;
 
-	bool IsInvisible = true;
+	bool IsInvisible = false;
 
 	//頂点データ
 	Vertex vertices[4];

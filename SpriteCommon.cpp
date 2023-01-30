@@ -206,7 +206,21 @@ void SpriteCommon::Initialize(DirectXcommon* dxCommon_)
 
 void SpriteCommon::PreDraw()
 {
-   
+    //プリミティブ形状の設定コマンド
+    dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+    //パイプラインステートとルートシグネチャの設定
+    dxCommon->GetCommandList()->SetPipelineState(pipelineState.Get());
+    dxCommon->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
+
+    //デスクリプタ
+    ID3D12DescriptorHeap* ppHeaps[] = { srvHeap.Get() };
+    dxCommon->GetCommandList()->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+}
+
+void SpriteCommon::PostDraw()
+{
+
 }
 
 void SpriteCommon::LoadTexture(uint32_t index,const std::string& filename)
@@ -306,17 +320,6 @@ void SpriteCommon::LoadTexture(uint32_t index,const std::string& filename)
 
 void SpriteCommon::SetTextureCommands(uint32_t index)
 {
-    //プリミティブ形状の設定コマンド
-    dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-    //パイプラインステートとルートシグネチャの設定
-    dxCommon->GetCommandList()->SetPipelineState(pipelineState.Get());
-    dxCommon->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
-
-    //デスクリプタ
-    ID3D12DescriptorHeap* ppHeaps[] = { srvHeap.Get() };
-    dxCommon->GetCommandList()->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
     //SRVヒープ
     UINT descriptorhandleInsrementSize = dxCommon->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(1, 
